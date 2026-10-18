@@ -1,6 +1,8 @@
 # Nexoeventos
 
-**Entrega final** · Integrantes: Juan Felipe Cortés, Sara Patiño, Manuela Vergara
+**Entrega final**
+
+Integrantes: Juan Felipe Cortés, Sara Patiño, Manuela Vergara
 
 ## Descripción
 
