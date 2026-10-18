@@ -1,8 +1,6 @@
-# NexoEventos · Centro de Convenciones Nexo
+# Nexoeventos
 
-Ingeniería de Datos · Proyecto Integrador (Parcial 2) · Universidad del Rosario, Escuela de Ciencias e Ingeniería
-
-**Entrega final (backend + frontend)** · Integrantes: [Nombre] Cortéz, [Nombre] Patiño, [Nombre] Vergara
+**Entrega final** · Integrantes: Juan Felipe Cortés, Sara Patiño, Manuela Vergara
 
 ## Descripción
 
@@ -14,28 +12,10 @@ El Centro de Convenciones Nexo alquila seis salones y un catálogo de servicios 
 2. **Liquidación automática:** el valor de cada evento (alquiler del salón + servicios con precio congelado) siempre está actualizado sin que la aplicación lo calcule.
 3. **Asistencia real y trazabilidad:** cada evento finalizado guarda su tasa de asistencia (llegaron ÷ inscritos) y cada cambio de estado, salón u horario queda auditado con el usuario de la aplicación.
 
-## Arquitectura
-
-Tres capas. El frontend **nunca** se conecta a la base: todo pasa por la API.
-
-```
-Streamlit (frontend/)  ──HTTP──▶  FastAPI (backend/)  ──SQLAlchemy──▶  PostgreSQL
-                                                         triggers A1–A4, función A5,
-                                                         reportes B1–B4 (backend/sql/)
-```
-
-| Componente | Tecnología | Rol |
-|---|---|---|
-| `backend/` | FastAPI + SQLAlchemy + Pydantic | API REST: entidades (`app/models.py`), DTO (`app/schemas.py`), traducción de errores (`app/errores.py`) y un router por recurso (`app/routers/`). |
-| `backend/sql/` | PostgreSQL (PL/pgSQL) | Triggers, funciones y vistas que la API aplica al iniciar, después de `Base.metadata.create_all(...)`; catálogo oficial y datos de prueba. |
-| `frontend/` | Streamlit | Seis módulos: tablero, eventos, asistentes y check-in, disponibilidad, clientes y staff, y reportes con gráficos. Consume solo la API y muestra la regla violada cuando la base rechaza una operación. |
-| `postman/` | Postman | Colección con un caso permitido y uno bloqueado por regla, con tests del código HTTP esperado. |
-| `documentacion/` | PDF | Diagrama relacional, diccionario de datos, lista de endpoints, manual de rutas y manual de usuario del frontend. |
-
 ## Estructura del proyecto
 
 ```
-Cortez_Patino_Vergara/
+Cortes_Patino_Vergara/
 ├── backend/          API REST en FastAPI: conexión a la base, entidades, DTO, manejo de errores y routers
 │   └── sql/          Scripts de PostgreSQL: triggers y funciones (A1–A5), reportes (B1–B4), catálogo y datos de prueba
 ├── frontend/         Aplicación en Streamlit que consume la API
@@ -52,21 +32,7 @@ Cortez_Patino_Vergara/
 | `postman/` | `NexoEventos.postman_collection.json`, con las peticiones de cada regla y la verificación del código HTTP esperado. |
 | `documentacion/` | `Diagrama_relacional.pdf`, `Diccionario_de_datos.pdf`, `Lista_de_endpoints.pdf`, `Manual_de_rutas.pdf` y `Manual_de_usuario.pdf`. |
 
-## Modelo de datos
 
-Nueve tablas en tercera forma normal, generadas por las entidades de SQLAlchemy. El detalle de cada campo está en `documentacion/Diccionario_de_datos.pdf` y el modelo completo en `documentacion/Diagrama_relacional.pdf`.
-
-| Tabla | Entidad | Descripción |
-|---|---|---|
-| `clientes` | `ClienteEntity` | Empresa (NIT) o persona natural (cédula). Documento único. |
-| `salones` | `SalonEntity` | Los 6 salones, con tamaño, capacidad, precio por hora y estado activo. |
-| `servicios` | `ServicioEntity` | Catálogo cobrado por persona, por hora o por unidad. |
-| `staff` | `StaffEntity` | Empleados con auto-referencia `jefe_id`; la dirección general no tiene jefe. |
-| `eventos` | `EventoEntity` | Evento de un cliente en un salón; guarda valor total y tasa de asistencia calculados por la base. |
-| `evento_servicios` | `EventoServicioEntity` | N:M eventos ↔ servicios con cantidad y precio congelado. |
-| `asistentes` | `AsistenteEntity` | Visitantes, con documento único. |
-| `inscripciones` | `InscripcionEntity` | N:M asistentes ↔ eventos; `fecha_checkin` es la asistencia real. |
-| `auditoria_eventos` | `AuditoriaEventoEntity` | Cambios de estado, salón u horario con valor anterior, nuevo, fecha y usuario de la aplicación. |
 
 ## Módulo A · Triggers y funciones (`backend/sql/01_logica_eventos.sql`)
 
@@ -109,7 +75,7 @@ Segmento Pareto: un cliente está en el segmento **A (80 %)** si el acumulado **
 
 ## Endpoints
 
-Todas las rutas aceptan el encabezado `X-Usuario`, que la API entrega a la base para la auditoría. Códigos: **201** al crear, **204** al borrar, **404** si no existe, **409** cuando un trigger rechaza la operación (con el mensaje de la regla), **422** cuando los datos son inválidos. Cada ruta, con sus parámetros, validaciones, errores posibles y un ejemplo real, está en `documentacion/Manual_de_rutas.pdf`; también se puede probar en Swagger (`/docs`).
+Todas las rutas aceptan el encabezado `X-Usuario`, que la API entrega a la base para la auditoría. Códigos: 201 al crear, 204 al borrar, 404 si no existe, 409 cuando un trigger rechaza la operación (con el mensaje de la regla), 422 cuando los datos son inválidos. Cada ruta, con sus parámetros, validaciones, errores posibles y un ejemplo real, está en `documentacion/Manual_de_rutas.pdf`; también se puede probar en Swagger (`/docs`).
 
 | Recurso | Rutas principales |
 |---|---|
@@ -171,9 +137,3 @@ streamlit run Inicio.py
 Se abre en http://localhost:8501. Si la API corre en otra dirección, defina la variable de entorno `API_URL`. El uso de cada pantalla está en `documentacion/Manual_de_usuario.pdf`.
 
 **5. Postman.** Importe `postman/NexoEventos.postman_collection.json` y ejecute las carpetas en orden sobre una base recién cargada; cada petición verifica el código HTTP esperado.
-
-## Notas
-
-- Las fechas de los datos de prueba corresponden al semestre 2026-2 (eventos pasados en agosto y septiembre, futuros entre octubre y diciembre). La zona horaria de la base se fija en `America/Bogota`.
-- Si se modifica un evento directamente desde pgAdmin, la auditoría registra el usuario de la base marcado con "(bd)".
-- La cadena de conexión vive solo en `backend/.env`, que no se sube al repositorio.
